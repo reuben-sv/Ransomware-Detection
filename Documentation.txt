@@ -1,0 +1,51 @@
+Basic system flow:
+data from ember dataset is converted to a model trainable format
+a model will be trained on the data
+User will select an path to exe file
+The system extracts static features from that exe file
+model performs static analysis and comes up with a score
+model performs dynamic analysis (not done yet)
+both scores weighted and summed to find probability of the exe being ransomware
+
+
+Scripts:
+ember_data/ember2018 contains train_features_0.jsonl to train_features_5.jsonl
+The original ember dataset was extremely large so another script ember_jsonl_to_dataframe.py is used to create a small subset of the data for training the model, it creates ember_static_features.csv
+ember_static_features.csv only contains 100000 rows, half postives and half negative
+train_static_model will create the model Static_Model.pkl
+
+(NEED TO FIND SUITABLE DATASET FOR DYNAMIC ANALYSIS MODEL?)
+
+extract_static_features.py is used to extract the right features from the .exe file
+some sample files Sample1.exe and Sample2.exe are stored in test_executable_files folder.
+Both the samples are obviously not ransomware so they will be classifsed BENIGN.
+You cant really find ransomware to test so instead i took some known ransomwares from the ember dataset and created malware_rows.csv which has 1 known ransomware, 1 weaker known ransomware and 1 goodware
+You can run the static_analysis_safe_ransomware.py to get the output if you were to pass a ransomware to the model.
+the explanation on why a choice was made by the ai is also given in the output:
+
+Sample 1
+Malware probability: 0.9933
+Prediction: STRONG RANSOMWARE
+
+Top reasons:
+  header_coff_timestamp: -0.0309 (↓ malware risk)
+  general_imports: +0.0138 (↑ malware risk)
+  imports_function_count: +0.0130 (↑ malware risk)
+  entropy_249: +0.0118 (↑ malware risk)
+  entropy_248: +0.0110 (↑ malware risk)
+  imports_user32_dll_count: +0.0110 (↑ malware risk)
+  entropy_255: +0.0109 (↑ malware risk)
+  entropy_244: +0.0109 (↑ malware risk)
+
+This is a sample output for static_analysis_safe_ransomware.py and you can clearly see what drives the AI's decision making.
+This is done because security teams dont trust black box ai and having this explanation makes it more trustworthy
+Note that you should never let the user run static_analysis_safe_ransomware.py, its only meant for showcasing the ability of the system to classify malware and also state the reasons why it did so.
+For actually running on user end, only main.py should be run, it hides the reasoning behind abstration so creators of malware cant modify static features to bypass this system.
+
+The main.py will perform both static analysis and dynamic analysis (only static has been implemented soo far, dyanmic will be implemented in the future),
+it uses a combination of both of them to give a score out of 100 to determine if a .exe is ransomware or not.
+
+
+
+
+
