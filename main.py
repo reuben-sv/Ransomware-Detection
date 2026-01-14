@@ -1,12 +1,6 @@
+from pathlib import Path
 from analysis_modules.static_analysis import analyze_executable_static
-
-# Dynamic analysis will be implemented later
-try:
-	from analysis_modules.dynamic_analysis import analyze_executable_dynamic
-	DYNAMIC_AVAILABLE = True
-except ImportError:
-	DYNAMIC_AVAILABLE = False
-
+from analysis_modules.dynamic_analysis import analyze_executable_dynamic
 
 # ---------------- CONFIG ----------------
 STATIC_WEIGHT = 0.7
@@ -55,19 +49,16 @@ def analyze_file(file_path):
 	print("=" * 60)
 
 	# -------- Static analysis --------
+	print("\nRunning synamic analysis...")
 	static_label, static_conf = analyze_executable_static(file_path)
 	static_score = static_score_from_probability(static_conf)
 
 	print(f"\nStatic analysis score: {static_score}/100")
 
 	# -------- Dynamic analysis (future) --------
-	if DYNAMIC_AVAILABLE:
-		print("\nRunning dynamic analysis...")
-		dynamic_score = analyze_executable_dynamic(file_path)
-		print(f"Dynamic analysis score: {dynamic_score}/100")
-	else:
-		print("\nDynamic analysis not available yet.")
-		dynamic_score = dynamic_score_placeholder()
+	print("\nRunning dynamic analysis...")
+	dynamic_score = analyze_executable_dynamic(file_path)
+	print(f"Dynamic analysis score: {dynamic_score}/100")
 
 	# -------- Final decision --------
 	final_score = final_ransomware_score(static_score, dynamic_score)
@@ -88,7 +79,8 @@ def analyze_file(file_path):
 
 # ---------------- ENTRY POINT ----------------
 if __name__ == "__main__":
-	FILE = ["test_executable_files\\Sample1.exe", "test_executable_files\\Sample2.exe"]
-	for file in FILE:
-		analyze_file(file)
+	folder = Path("test_executable_files")
+	for file in folder.glob("*.exe"):
+		analyze_file(str(file))
+
 	

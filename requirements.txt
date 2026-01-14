@@ -1,5 +1,7 @@
-pefile
 numpy
 pandas
 scikit-learn
+pefile
 treeinterpreter
+joblib
+psutil

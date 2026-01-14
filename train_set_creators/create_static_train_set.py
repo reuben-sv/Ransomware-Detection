@@ -113,6 +113,43 @@ def flatten_features(sample):
 	return features
 
 # ---------------- LOAD FILE ----------------
+
+import json
+import random
+import pandas as pd
+
+def load_all_data(paths):
+	data = []
+
+	for path in paths:
+		with open(path, "r") as f:
+			for line in f:
+				sample = json.loads(line)
+				features = flatten_features(sample)
+				if features is not None:
+					data.append(features)
+
+	return data
+
+
+def balance_data(shuffled_data):
+	counts = {0: 0, 1: 0}
+	balanced = []
+
+	for row in shuffled_data:
+		label = row["label"]
+
+		if counts[label] < TARGET_PER_CLASS:
+			balanced.append(row)
+			counts[label] += 1
+
+		if counts[0] >= TARGET_PER_CLASS and counts[1] >= TARGET_PER_CLASS:
+			break
+
+	return balanced
+
+
+
 def load_balanced(path, counts):
 	data = []
 	with open(path, "r") as f:
@@ -134,14 +171,16 @@ def load_balanced(path, counts):
 
 # ---------------- MAIN ----------------
 def main():
-	print("Building class-balanced dataset (0 vs 1)...")
+	print("Loading all data...")
+	data = load_all_data(INPUT_FILES)
 
-	counts = {0: 0, 1: 0}
-	data = []
-	for file in INPUT_FILES:
-		data.extend(load_balanced(file, counts))
+	print("Shuffling data...")
+	random.shuffle(data)
 
-	df = pd.DataFrame(data)
+	print("Balancing classes...")
+	final_data = balance_data(data)
+
+	df = pd.DataFrame(final_data)
 
 	print("Final dataset shape:", df.shape)
 	print("Label distribution:")
@@ -149,6 +188,7 @@ def main():
 
 	df.to_csv(OUTPUT_FILE, index=False)
 	print("✓ Saved to", OUTPUT_FILE)
+
 
 if __name__ == "__main__":
 	main()

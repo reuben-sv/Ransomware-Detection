@@ -1,2 +1,7 @@
-database
-models
+.venv
+
+database/*
+!database/malware_rows.csv
+
+models/*
+!models/.gitkeep

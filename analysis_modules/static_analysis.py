@@ -1,7 +1,7 @@
 import joblib
 import numpy as np
 import pandas as pd
-import extract_static_features as esf
+import analysis_modules.extract_static_features as esf
 
 # ---------------- CONFIG ----------------
 MODEL_PATH = "models/Static_Model.pkl"
