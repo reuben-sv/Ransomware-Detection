@@ -5,16 +5,18 @@ Guide to Get the Project Up and Running
     BODMAS dataset
 
 2. Place the datasets in the following directory structure:
-    database/
-    ├── bodmas/
-    │   └── bodmas.npz
-    └── ember2018/
-        ├── train_features_0.jsonl
-        ├── train_features_1.jsonl
-        ├── train_features_2.jsonl
-        ├── train_features_3.jsonl
-        ├── train_features_4.jsonl
-        └── train_features_5.jsonl
+```text
+database/
+├── bodmas/
+│   └── bodmas.npz
+└── ember2018/
+    ├── train_features_0.jsonl
+    ├── train_features_1.jsonl
+    ├── train_features_2.jsonl
+    ├── train_features_3.jsonl
+    ├── train_features_4.jsonl
+    └── train_features_5.jsonl
+```
 
 3. Create the training datasets:
     Run create_dynamic_train_set.py and create_static_train_set.py (located inside train_set_creators folder)

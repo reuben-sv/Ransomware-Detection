@@ -6,8 +6,8 @@ from train_set_creators.create_static_train_set import create_static_train_set
 from os.path import isfile
 
 # ---------------- CONFIG ----------------
-STATIC_WEIGHT = 0.7
-DYNAMIC_WEIGHT = 0.3
+STATIC_WEIGHT = 0.3
+DYNAMIC_WEIGHT = 0.7
 
 
 # ---------------- SCORE HELPERS ----------------
@@ -19,12 +19,12 @@ def static_score_from_probability(prob):
 	return int(prob * 100)
 
 
-def dynamic_score_placeholder():
+def dynamic_score_from_probability(prob):
 	"""
-	Placeholder for future dynamic analysis.
-	Returns None to indicate unavailable.
+	Convert dynamic malware probability (0–1)
+	to a 0–100 score
 	"""
-	return None
+	return int(prob * 100)
 
 
 def final_ransomware_score(static_score, dynamic_score=None):
@@ -52,15 +52,16 @@ def analyze_file(file_path):
 	print("=" * 60)
 
 	# -------- Static analysis --------
-	print("\nRunning synamic analysis...")
+	print("\nRunning static analysis...")
 	static_label, static_conf = analyze_executable_static(file_path)
 	static_score = static_score_from_probability(static_conf)
 
 	print(f"\nStatic analysis score: {static_score}/100")
 
-	# -------- Dynamic analysis (future) --------
+	# -------- Dynamic analysis --------
 	print("\nRunning dynamic analysis...")
-	dynamic_score = analyze_executable_dynamic(file_path)
+	dynamic_prob = analyze_executable_dynamic(file_path)
+	dynamic_score = dynamic_score_from_probability(dynamic_prob)
 	print(f"Dynamic analysis score: {dynamic_score}/100")
 
 	# -------- Final decision --------
