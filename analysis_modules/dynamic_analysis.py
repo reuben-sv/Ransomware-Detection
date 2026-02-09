@@ -116,6 +116,3 @@ def analyze_executable_dynamic(file_path):
 	print("\nDynamic analysis complete")
 
 	return score
-
-filepath = "test_executable_files\Sample2.exe"
-print(analyze_executable_dynamic(filepath))

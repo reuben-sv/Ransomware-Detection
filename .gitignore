@@ -1,4 +1,8 @@
 .venv
+__pycache__
+analysis_modules/__pycache__
+
+model_trainer/__pycache__
 
 database/*
 !database/malware_rows.csv
@@ -9,3 +13,5 @@ models/*
 train_set_creators/__pycache__
 
 test.py
+
+.gitignore

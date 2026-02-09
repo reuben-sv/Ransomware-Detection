@@ -3,11 +3,24 @@ from analysis_modules.static_analysis import analyze_executable_static
 from analysis_modules.dynamic_analysis import analyze_executable_dynamic
 from train_set_creators.create_dynamic_train_set import create_dynamic_train_set
 from train_set_creators.create_static_train_set import create_static_train_set
+from model_trainer.train_static_model import train_static_model
+from model_trainer.train_dynamic_model import train_dynamic_model
 from os.path import isfile
-
+import pandas as pd
+from static_analysis_safe_ransomware import static_analysis_safe_ransomware
+from enum import Enum
 # ---------------- CONFIG ----------------
 STATIC_WEIGHT = 0.3
 DYNAMIC_WEIGHT = 0.7
+
+class Status(Enum):
+	DEFAULT = 0
+	NO_MODEL = -3
+	NO_TRAIN_DATA = -2
+	NO_DATA = -1
+	DATA_FOUND = 1
+	TRAIN_DATA_FOUND = 2
+	MODEL_FOUND = 3
 
 
 # ---------------- SCORE HELPERS ----------------
@@ -53,7 +66,7 @@ def analyze_file(file_path):
 
 	# -------- Static analysis --------
 	print("\nRunning static analysis...")
-	static_label, static_conf = analyze_executable_static(file_path)
+	static_label, static_conf = analyze_executable_static(file_path, "models/Static_Model.pkl")
 	static_score = static_score_from_probability(static_conf)
 
 	print(f"\nStatic analysis score: {static_score}/100")
@@ -80,65 +93,210 @@ def analyze_file(file_path):
 		"verdict": verdict
 	}
 
-def main():
-	print("RANSOMWARE DETECTION SYSTEM")
-	menu = True
-	while menu == True:
-		print("MENU", "1. SETUP (RUN FIRST)", "2. ANALYZE EXE", "3. SHOWCASE", "4. EXIT", sep = '\n')
+def static_model_check():
+	static_model_location = "models/Static_Model.pkl"
+	if not Path(static_model_location).is_file():
+		return Status.NO_MODEL
+	else:
+		return Status.MODEL_FOUND
+	
+def dynamic_model_check():
+	dynamic_model_location = "models/Dynamic_Model.pkl"
+	if not Path(dynamic_model_location).is_file():
+		return Status.NO_MODEL
+	else:
+		return Status.MODEL_FOUND
 
+def static_training_data_check():
+	static_model_location = "database/static_training_data.csv"
+	if not Path(static_model_location).is_file():
+		return Status.NO_TRAIN_DATA
+	else:
+		return Status.TRAIN_DATA_FOUND
 
+def dynamic_training_data_check():
+	dynamic_model_location = "database/dynamic_training_data.npz"
+	if not Path(dynamic_model_location).is_file():
+		return Status.NO_TRAIN_DATA
+	else:
+		return Status.TRAIN_DATA_FOUND
+
+def static_data_check():
+	r = Status.DATA_FOUND
+	static_dataset_location = [
+		"database/ember2018/train_features_0.jsonl",
+		"database/ember2018/train_features_1.jsonl",
+		"database/ember2018/train_features_2.jsonl",
+		"database/ember2018/train_features_3.jsonl",
+		"database/ember2018/train_features_4.jsonl",
+		"database/ember2018/train_features_5.jsonl"
+	]
+	for path in static_dataset_location:
+		if not Path(path).is_file():
+			print(f"{path} Not Found")
+			r = Status.NO_DATA
+			continue
+	return r
+
+def dynamic_data_check():
+	dynamic_dataset_location = "database/bodmas/bodmas.npz"
+	if not Path(dynamic_dataset_location).is_file():
+		print(f"{dynamic_dataset_location} Is Missing")
+		return Status.NO_DATA
+	return Status.DATA_FOUND
 
 # ---------------- ENTRY POINT ----------------
-def setup():
-	print("Performing Checks:")
-	print("Checking for ember dataset")
-	#do something
-	print("Confirmed")
-	print("Checking for Bodmas dataset")
-	#do something
-	print("Confirmed")
+def setup(status):
+	# status[0] = Static, status[1] = Dynamic
 
-	print("Creating training set for static analysis model")
-	create_static_train_set()
-	print("Static training set Created")
-	print("Creating training set for dynamic analysis model")
-	create_dynamic_train_set()
-	print("Dynamic training set Created\n")
+	# Static 
+	print("\nChecking for Static Model: ", end='')
+	while status[0] != Status.MODEL_FOUND:
+		match status[0]:
+			case Status.DEFAULT:
+				status[0] = static_model_check()
+
+			case Status.NO_MODEL:
+				print("Static Model Not Found")
+				print("Checking for Static Training Data: ", end='')
+				status[0] = static_training_data_check()
+
+			case Status.NO_TRAIN_DATA:
+				print("Static Training Data Not Found")
+				print("Checking for Ember Dataset: ", end='')
+				status[0] = static_data_check()
+
+			case Status.NO_DATA:
+				print("Ember Dataset Incomplete")
+				status[0] = Status.NO_DATA
+				break
+			
+			case Status.DATA_FOUND:
+				print("Ember Dataset Found")
+				print("Creating training set for static analysis model")
+				try:
+					create_static_train_set()
+					status[0] = Status.TRAIN_DATA_FOUND
+					print("Static training set Created")
+				except Exception as e:
+					print("Error:", type(e).__name__, "-", e)
+
+			case Status.TRAIN_DATA_FOUND:
+				print("Static Training Data Found")
+				print("Training Static Mode (Wait a while)")
+				try:
+					train_static_model()
+					status[0] = Status.MODEL_FOUND
+				except Exception as e:
+					print("Error:", type(e).__name__, "-", e)
+
+			case Status.MODEL_FOUND:
+				print("Static Model Setup Complete")
+				break
+
+			case _:
+				print("That Should Not Have Happened")
+
+	else:
+		print("Static Model Setup Complete")
+
+	# Dynamic
+	print("\nChecking for Dynamic Model: ", end= '')
+	while status[1] != Status.MODEL_FOUND:
+		match status[1]:
+			case Status.DEFAULT:
+				status[1] = dynamic_model_check()
+
+			case Status.NO_MODEL:
+				print("Dynamic Model Not Found")
+				print("Checking for Dynamic Training Data: ", end= '')
+				status[1] = dynamic_training_data_check()
+
+			case Status.NO_TRAIN_DATA:
+				print("Dynamic Training Data Not Found")
+				print("Checking for Bodmas Dataset: ", end= '')
+				status[1] = dynamic_data_check()
+
+			case Status.NO_DATA:
+				print("Bodmas Dataset Missing")
+				status[1] = Status.NO_DATA
+				break
+			
+			case Status.DATA_FOUND:
+				print("Bodmas Dataset Found")
+				print("Creating training set for dynamic analysis model")
+				try:
+					create_dynamic_train_set()
+					status[1] = Status.TRAIN_DATA_FOUND
+					print("Dynamic training set Created")
+				except Exception as e:
+					print("Error:", type(e).__name__, "-", e)
+
+			case Status.TRAIN_DATA_FOUND:
+				print("Dynamic Training Data Found")
+				print("Training Dynamic Model")
+				try:
+					train_dynamic_model()
+					status[1] = Status.MODEL_FOUND
+				except Exception as e:
+					print("Error:", type(e).__name__, "-", e)
+
+			case Status.MODEL_FOUND:
+				print("Dynamic Model Setup Complete")
+				break
+
+			case _:
+				print("That Should Not Have Happened")
+
+	else:
+		print("Dynamic Model Setup Complete")
+
+	print("\nSetup Completed")
+	return status
 
 def analyze():
 	file = str(input("Enter Path to executable (.exe) to analyze(Example: C:\\User\\admin\\Downloads\\sample1.exe) : "))
-	if not file.lower().endswith(".exe"):
-		print("Invalid Path (not .exe type)")
-		analyze()
 	if not isfile(file):
 		print("Path does not exist or is not a file")
-	analyze_file(file)
+		analyze()
+	elif not file.lower().endswith(".exe"):
+		print("Invalid Path (not .exe type)")
+		analyze()
+	else:
+		analyze_file(file)
 
 def showcase():
-	pass
+	CSV_PATH = "database/malware_rows.csv"
+	df = pd.read_csv(CSV_PATH, header=None)
+	X = df.drop(columns=[0])
+	static_analysis_safe_ransomware(X)
 
 
 def main():
+	print("Welcome to the Ransomware Detection System\n Now running Setup")
 	menu = True
 	while menu == True:
-		print("MENU", "1. SETUP (RUN FIRST)", "2. ANALYZE EXE", "3. SHOWCASE", "4. EXIT", sep = '\n')
-		option = int(input("Option: "))
-		if option == 1:
-			setup()
-			continue
-		elif option == 2:
-			analyze()
-		elif option == 3:
-			showcase()
-		elif option == 4:
-			print("Exiting")
-			break
-		else:
-			print("Invalid Option, try again")
-			continue
+		status = [Status.DEFAULT,Status.DEFAULT]
+		print("MENU: ", "0. Setup(Run Once)", "1. ANALYZE EXE", "2. SHOWCASE(featues of 2 real ransomware and a goodware)", "3. EXIT", sep = '\n')
+		option = int(input("Option (Enter number): "))
+		match option:
+			case 0:
+				status = setup(status)
+			case 1:
+				analyze()
+				report_gen = int(input("Generate Report? (0 = No, 1 = Yes) : "))
+				if report_gen == 0:
+					continue
+			case 2:
+				showcase()
+			case 3:
+				print("Exiting")
+				menu = False
+				break
+			case _:
+				print("Invalid Option, try again")
+				continue
 
 
 if __name__ == "__main__":
 	main()
-
-	

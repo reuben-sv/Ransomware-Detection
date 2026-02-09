@@ -11,7 +11,7 @@ INPUT_FILES = [
 	"database/ember2018/train_features_4.jsonl",
 	"database/ember2018/train_features_5.jsonl"
 	]
-OUTPUT_FILE = "database/ember_static_features.csv"
+OUTPUT_FILE = "database/static_training_data.csv"
 
 TOTAL_ROWS = 100000
 TARGET_PER_CLASS = TOTAL_ROWS // 2	# 50000 label=0, 50000 label=1
@@ -171,13 +171,13 @@ def load_balanced(path, counts):
 
 # ---------------- MAIN ----------------
 def create_static_train_set():
-	print("Loading all data...")
+	print("Loading all data...(Wait A while)")
 	data = load_all_data(INPUT_FILES)
 
 	print("Shuffling data...")
 	random.shuffle(data)
 
-	print("Balancing classes...")
+	print("Balancing classes...(Wait A While)")
 	final_data = balance_data(data)
 
 	df = pd.DataFrame(final_data)
@@ -187,7 +187,7 @@ def create_static_train_set():
 	print(df["label"].value_counts())
 
 	df.to_csv(OUTPUT_FILE, index=False)
-	print("✓ Saved to", OUTPUT_FILE)
+	print("Saved to", OUTPUT_FILE)
 
 
 if __name__ == "__main__":

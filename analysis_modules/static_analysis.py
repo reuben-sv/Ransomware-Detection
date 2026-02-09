@@ -3,13 +3,6 @@ import numpy as np
 import pandas as pd
 import analysis_modules.extract_static_features as esf
 
-# ---------------- CONFIG ----------------
-MODEL_PATH = "models/Static_Model.pkl"
-
-# ---------------- LOAD MODEL (once) ----------------
-_model = joblib.load(MODEL_PATH)
-
-
 # ---------------- FEATURE FLATTENER ----------------
 def flatten_exe_features(raw):
 	vec = []
@@ -95,7 +88,8 @@ def flatten_exe_features(raw):
 
 
 # ---------------- PUBLIC API FUNCTION ----------------
-def analyze_executable_static(file_path):
+def analyze_executable_static(file_path, MODEL_PATH):
+	_model = joblib.load(MODEL_PATH)
 	print(f"\nAnalyzing: {file_path}")
 	print(f"Extracting features from {file_path}")
 
