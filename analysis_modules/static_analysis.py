@@ -2,6 +2,35 @@ import joblib
 import numpy as np
 import pandas as pd
 import analysis_modules.extract_static_features as esf
+import shap
+
+def explain_prediction(model, X, top_k=10):
+
+	# Tree-based explainer (fast + exact)
+	explainer = shap.TreeExplainer(model)
+	shap_values = explainer.shap_values(X)
+
+	# Binary classifier handling
+	if isinstance(shap_values, list):
+		shap_vals = shap_values[1][0]	# class=1 (malware)
+	else:
+		shap_vals = shap_values
+	contribs = shap_values
+	if len(contribs.shape) == 3:
+		contribs = contribs[0, :, 1]	# sample 0, class 1
+	elif len(contribs.shape) == 2:
+		contribs = contribs[0]
+	features = X.columns
+
+	# Pair + sort by absolute impact
+	ranked = sorted(
+		zip(features, contribs),
+		key=lambda x: abs(x[1]),
+		reverse=True
+	)
+
+	return ranked[:top_k]
+
 
 # ---------------- FEATURE FLATTENER ----------------
 def flatten_exe_features(raw):
@@ -145,4 +174,11 @@ def analyze_executable_static(file_path, MODEL_PATH):
 
 	label = "MALWARE / RANSOMWARE" if pred == 1 else "BENIGN"
 
-	return label, float(proba)
+	reasons = explain_prediction(_model, X)
+	reason_list = []
+	for feat, val in reasons:
+		direction = "Malware Likelihood Increased" if val > 0 else "Benign Likelihood Increased"
+		reason_list.append(f"{feat:40s} {val:+.4f} ({direction})\n")
+
+
+	return label, float(proba), reason_list

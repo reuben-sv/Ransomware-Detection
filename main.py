@@ -9,10 +9,11 @@ from os.path import isfile
 import pandas as pd
 from static_analysis_safe_ransomware import static_analysis_safe_ransomware
 from enum import Enum
+from report_generator import report_generator
 # ---------------- CONFIG ----------------
 STATIC_WEIGHT = 0.3
 DYNAMIC_WEIGHT = 0.7
-
+D = {}
 class Status(Enum):
 	DEFAULT = 0
 	NO_MODEL = -3
@@ -25,10 +26,7 @@ class Status(Enum):
 
 # ---------------- SCORE HELPERS ----------------
 def static_score_from_probability(prob):
-	"""
-	Convert static malware probability (0–1)
-	to a 0–100 score
-	"""
+	 
 	return int(prob * 100)
 
 
@@ -66,7 +64,7 @@ def analyze_file(file_path):
 
 	# -------- Static analysis --------
 	print("\nRunning static analysis...")
-	static_label, static_conf = analyze_executable_static(file_path, "models/Static_Model.pkl")
+	static_label, static_conf, static_reasons = analyze_executable_static(file_path, "models/Static_Model.pkl")
 	static_score = static_score_from_probability(static_conf)
 
 	print(f"\nStatic analysis score: {static_score}/100")
@@ -87,6 +85,8 @@ def analyze_file(file_path):
 	print("-" * 40)
 
 	return {
+		"file_path": file_path,
+		"static_reasons": static_reasons,
 		"static_score": static_score,
 		"dynamic_score": dynamic_score,
 		"final_score": final_score,
@@ -263,7 +263,7 @@ def analyze():
 		print("Invalid Path (not .exe type)")
 		analyze()
 	else:
-		analyze_file(file)
+		return(analyze_file(file))
 
 def showcase():
 	CSV_PATH = "database/malware_rows.csv"
@@ -283,10 +283,10 @@ def main():
 			case 0:
 				status = setup(status)
 			case 1:
-				analyze()
+				reasons = analyze()
 				report_gen = int(input("Generate Report? (0 = No, 1 = Yes) : "))
-				if report_gen == 0:
-					continue
+				if report_gen == 1:
+					report_generator(reasons)
 			case 2:
 				showcase()
 			case 3:

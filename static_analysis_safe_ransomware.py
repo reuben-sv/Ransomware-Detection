@@ -5,7 +5,7 @@ import numpy as np
 import warnings
 from sklearn.exceptions import DataConversionWarning
 
-def static_analysis_safe_ransomware(X):
+def static_analysis_safe_ransomware(X): # X is 
 	warnings.filterwarnings(
 		"ignore",
 		message="X has feature names, but DecisionTreeClassifier was fitted without feature names"

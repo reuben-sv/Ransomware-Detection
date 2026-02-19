@@ -3,7 +3,7 @@ import time
 import psutil
 import os
 import socket
-
+import random
 
 # ---------------- CONFIG ----------------
 MONITOR_DURATION = 8	# seconds
@@ -84,7 +84,7 @@ def executable_dynamic(file_path):
 
 # ---------------- SCORING LOGIC ----------------
 def compute_dynamic_score(f):
-	score = 0.0
+	score = random.uniform(0.0,0.2)
 
 	if f["cpu_peak"] > 60:
 		score += 0.2
