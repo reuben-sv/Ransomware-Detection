@@ -25,6 +25,8 @@ class Status(Enum):
 
 
 # ---------------- SCORE HELPERS ----------------
+
+#converting prob of 0-1 to a score btw 0-100
 def static_score_from_probability(prob):
 	 
 	return int(prob * 100)
@@ -37,10 +39,10 @@ def dynamic_score_from_probability(prob):
 	"""
 	return int(prob * 100)
 
-
+# calculating final score
 def final_ransomware_score(static_score, dynamic_score=None):
 	if dynamic_score is None:
-		# Only static analysis available
+		# if Only static analysis available
 		return static_score
 
 	return int(
@@ -48,7 +50,7 @@ def final_ransomware_score(static_score, dynamic_score=None):
 		dynamic_score * DYNAMIC_WEIGHT
 	)
 
-
+# verdict based on score
 def verdict_from_score(score):
 	if score >= 80:
 		return "STRONG RANSOMWARE"

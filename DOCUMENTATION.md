@@ -34,7 +34,7 @@ The final verdict is a **weighted combination** of both scores (30% static + 70%
                                  │
                  ┌───────────────┼───────────────┐
                  │               │               │
-           ┌─────▼─────┐  ┌─────▼─────┐  ┌──────▼──────┐
+           ┌─────▼──────┐  ┌─────▼─────┐  ┌──────▼──────┐
            │  Analyze   │  │   Setup   │  │  Showcase   │
            │  (.exe)    │  │  (Models) │  │  (Demo)     │
            └─────┬──────┘  └─────┬─────┘  └──────┬──────┘
@@ -45,16 +45,16 @@ The final verdict is a **weighted combination** of both scores (30% static + 70%
   │  Static    │  │  Dynamic  ││   ┌─────────────────────┐
   │  Analysis  │  │  Analysis ││   │  Training Pipeline  │
   └─────┬──────┘  └───────┬───┘│   │                     │
-        │                 │    ├──►│  create_*_train_set  │
-        │                 │    │   │  train_*_model       │
+        │                 │    ├──►│  create_*_train_set │
+        │                 │    │   │  train_*_model      │
   ┌─────▼──────┐          │    │   └─────────────────────┘
   │  extract_  │          │    │
   │  static_   │          │    │
   │  features  │          │    │
-  └────────────┘          │    │
-                          │    │
-                 ┌────────▼────▼──┐
-                 │ report_generator│
+  └──────┬─────┘          │    │
+          │               │    │
+           │     ┌────────▼────▼───┐
+            ├──► │ report_generator│
                  │   (PDF output)  │
                  └─────────────────┘
 ```
@@ -192,7 +192,7 @@ When a user selects a .exe file for analysis, the following pipeline runs:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Input: .exe file                      │
+│                    Input: .exe file                     │
 └────────────────────────┬────────────────────────────────┘
                          │
           ┌──────────────┴──────────────┐
@@ -201,8 +201,8 @@ When a user selects a .exe file for analysis, the following pipeline runs:
     │   STATIC   │              │    DYNAMIC    │
     │  ANALYSIS  │              │   ANALYSIS    │
     │            │              │               │
-    │ 1. Parse   │              │ 1. Execute    │
-    │    PE file │              │    as subprocess│
+    │ 1. Parse   │              │ 1. Execute as │
+    │    PE file │              │    subprocess │
     │ 2. Extract │              │ 2. Monitor    │
     │    features│              │    for 8 sec  │
     │    (~280)  │              │ 3. Collect    │
@@ -213,7 +213,7 @@ When a user selects a .exe file for analysis, the following pipeline runs:
     └─────┬──────┘              └───────┬───────┘
           │                             │
           │  Score (0-100)              │  Score (0-100)
-          │  Weight: 0.3               │  Weight: 0.7
+          │  Weight: 0.3                │  Weight: 0.7
           │                             │
           └──────────┬──────────────────┘
                      │
@@ -221,8 +221,8 @@ When a user selects a .exe file for analysis, the following pipeline runs:
               │  COMBINE    │
               │             │
               │  final =    │
-              │  static×0.3 │
-              │  +dynamic×0.7│
+              │ static×0.3 +│
+              │ dynamic×0.7 │
               └──────┬──────┘
                      │
               ┌──────▼──────┐
@@ -245,10 +245,10 @@ When a user selects a .exe file for analysis, the following pipeline runs:
 
 ### Datasets Used
 
-| Dataset | Type    | Purpose                   | Format      |
-|---------|---------|---------------------------|-------------|
-| EMBER 2018 | Static | PE file feature vectors | 6 JSONL files |
-| BODMAS  | Dynamic | Runtime behavior features | NPZ archive  |
+| Dataset    | Type    | Purpose                   | Format        |
+|------------|---------|---------------------------|---------------|
+| EMBER 2018 | Static  | PE file feature vectors   | 6 JSONL files |
+| BODMAS     | Dynamic | Runtime behavior features | NPZ archive   |
 
 Both datasets must be downloaded separately and placed in the `database/` folder.
 
